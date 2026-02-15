@@ -1,0 +1,204 @@
+services:
+  # ============================================
+  # INIT - Fix permissions pour Elasticsearch et Grafana
+  # ============================================
+  data-init:
+    image: alpine:latest
+    container_name: surveillance-data-init
+    volumes:
+      - ./data/elasticsearch:/data/elasticsearch
+      - ./data/grafana:/data/grafana
+      - ./data/pcap:/data/pcap
+      - ./data/logs:/data/logs
+    command: >
+      sh -c "
+        echo '[INIT] Configuration des permissions...';
+        mkdir -p /data/elasticsearch /data/grafana /data/pcap /data/logs;
+        chown -R 1000:1000 /data/elasticsearch;
+        chown -R 472:472 /data/grafana;
+        chmod -R 755 /data/elasticsearch /data/grafana /data/pcap /data/logs;
+        echo '[INIT] Permissions configurées.';
+      "
+    restart: "no"
+
+  # ============================================
+  # ELASTICSEARCH - Stockage et indexation
+  # ============================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: surveillance-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+    volumes:
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - surveillance-net
+    depends_on:
+      data-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ============================================
+  # GRAFANA - Visualisation et dashboards
+  # ============================================
+  grafana:
+    image: grafana/grafana:10.3.0
+    container_name: surveillance-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      - ./configs/grafana/provisioning:/etc/grafana/provisioning
+      - ./configs/grafana/dashboards:/etc/grafana/dashboards
+      - ./data/grafana:/var/lib/grafana
+    depends_on:
+      data-init:
+        condition: service_completed_successfully
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - surveillance-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ============================================
+  # ZEEK - IDS behavioral analysis
+  # ============================================
+  zeek:
+    image: zeek/zeek:6.0
+    container_name: surveillance-zeek
+    network_mode: host
+    privileged: true
+    environment:
+      - CAPTURE_INTERFACE=${CAPTURE_INTERFACE:-ens33}
+    volumes:
+      - ./configs/zeek:/usr/local/zeek/share/zeek/site
+      - ./data/logs/zeek:/data/logs/zeek
+      - ./scripts/start-zeek.sh:/start-zeek.sh:ro
+    command: /bin/bash /start-zeek.sh
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+
+  # ============================================
+  # LOGSTASH - Log processing and transformation
+  # ============================================
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: surveillance-logstash
+    environment:
+      - "LS_JAVA_OPTS=${LOGSTASH_JAVA_OPTS:--Xmx1g -Xms1g}"
+    volumes:
+      - ./configs/logstash/pipelines:/usr/share/logstash/pipeline
+      - ./configs/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./data/logs:/data/logs:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - surveillance-net
+    restart: unless-stopped
+
+  # ============================================
+  # DUMPCAP - Capture PCAP avec ring buffer
+  # ============================================
+  dumpcap:
+    image: ubuntu:22.04
+    container_name: surveillance-dumpcap
+    network_mode: host
+    privileged: true
+    environment:
+      - CAPTURE_INTERFACE=${CAPTURE_INTERFACE:-ens33}
+      - PCAP_RETENTION_DAYS=${PCAP_RETENTION_DAYS:-7}
+      - PCAP_MAX_SIZE=${PCAP_MAX_SIZE:-1000}
+      - PCAP_FILES=${PCAP_FILES:-10}
+    volumes:
+      - ./data/pcap:/data/pcap
+      - ./scripts/dumpcap-capture.sh:/capture.sh:ro
+    command: /bin/bash /capture.sh
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+  # ============================================
+  # ETTERCAP - Détection ARP/DNS/MITM
+  # ============================================
+  ettercap:
+    image: ubuntu:22.04
+    container_name: surveillance-ettercap
+    network_mode: host
+    privileged: true
+    environment:
+      - CAPTURE_INTERFACE=${CAPTURE_INTERFACE:-ens33}
+    volumes:
+      - ./data/logs/ettercap:/data/logs/ettercap
+      - ./scripts/start-ettercap.sh:/start-ettercap.sh:ro
+    command: /bin/bash /start-ettercap.sh
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+  # ============================================
+  # NGINX - Page d'accueil
+  # ============================================
+  nginx:
+    image: nginx:alpine
+    container_name: surveillance-nginx
+    volumes:
+      - ./configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./configs/nginx/html:/usr/share/nginx/html:ro
+    ports:
+      - "80:80"
+    networks:
+      - surveillance-net
+    depends_on:
+      - grafana
+    restart: unless-stopped
+
+  # ============================================
+  # INIT - Configuration automatique Grafana
+  # ============================================
+  grafana-init:
+    image: curlimages/curl:latest
+    container_name: surveillance-grafana-init
+    networks:
+      - surveillance-net
+    depends_on:
+      grafana:
+        condition: service_healthy
+    volumes:
+      - ./scripts/init-grafana.sh:/init-grafana.sh:ro
+    entrypoint: ["/bin/sh", "/init-grafana.sh"]
+    restart: "no"
+
+networks:
+  surveillance-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+
+volumes:
+  elasticsearch-data:

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLENZ Stack - Network Security Operations Center</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', 'Consolas', monospace;
+            background: #0a0e27;
+            color: #00ff41;
+            min-height: 100vh;
+            padding: 20px;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.03) 2px, rgba(0, 255, 65, 0.03) 4px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            border: 2px solid #00ff41;
+            padding: 20px;
+            margin-bottom: 30px;
+            background: rgba(0, 20, 40, 0.8);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            color: #00ff41;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+
+        .system-time {
+            font-size: 0.9em;
+            color: #0af;
+        }
+
+        .subtitle {
+            font-size: 0.85em;
+            color: #0af;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .status-bar {
+            background: rgba(0, 20, 40, 0.9);
+            border: 1px solid #00ff41;
+            padding: 15px;
+            margin-bottom: 30px;
+            box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.1);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .status-label {
+            font-size: 0.75em;
+            color: #0af;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .status-value {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .status-online {
+            color: #00ff41;
+            text-shadow: 0 0 5px #00ff41;
+        }
+
+        .status-offline {
+            color: #ff0040;
+            text-shadow: 0 0 5px #ff0040;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(0, 20, 40, 0.9);
+            border: 1px solid #00ff41;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff41, transparent);
+            transition: 0.5s;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            border-color: #0af;
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+        }
+
+        .card-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+            color: #0af;
+        }
+
+        .card-title {
+            font-size: 1.1em;
+            color: #00ff41;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .card-description {
+            color: #8b9dc3;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.85em;
+        }
+
+        .card-link {
+            display: inline-block;
+            padding: 8px 20px;
+            background: transparent;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .card-link:hover {
+            background: #00ff41;
+            color: #0a0e27;
+            box-shadow: 0 0 10px #00ff41;
+        }
+
+        .card-link.disabled {
+            border-color: #555;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        .card-link.disabled:hover {
+            background: transparent;
+            color: #555;
+            box-shadow: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid rgba(0, 255, 65, 0.3);
+            color: #0af;
+            font-size: 0.8em;
+        }
+
+        .terminal-prompt {
+            color: #00ff41;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.2em;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1>[ GLENZ STACK - NETWORK SECURITY OPS ]</h1>
+                <div class="system-time" id="clock">SYSTEM TIME: --:--:--</div>
+            </div>
+            <div class="subtitle">
+                <span class="terminal-prompt">root@glenz:~#</span> Grafana • Logstash • Elasticsearch • Nginx • Zeek
+            </div>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-label">Elasticsearch</div>
+                    <div class="status-value status-online" id="es-status">[ ONLINE ]</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Grafana</div>
+                    <div class="status-value status-online" id="grafana-status">[ ONLINE ]</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Zeek IDS</div>
+                    <div class="status-value status-online" id="zeek-status">[ ONLINE ]</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Logstash</div>
+                    <div class="status-value status-online" id="logstash-status">[ ONLINE ]</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">System</div>
+                    <div class="status-value status-online" id="system-status">[ READY ]</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">Grafana Dashboards</div>
+                </div>
+                <div class="card-description">
+                    > Multi-datasource visualization<br>
+                    > Dynamic variables and filters<br>
+                    > Unified alerting platform
+                </div>
+                <a href="http://localhost:3000" class="card-link" target="_blank">ACCESS INTERFACE</a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🔍</div>
+                    <div class="card-title">Elasticsearch API</div>
+                </div>
+                <div class="card-description">
+                    > Direct database queries<br>
+                    > Index management (zeek-*)<br>
+                    > Cluster health monitoring
+                </div>
+                <a href="http://localhost:9200/_cluster/health?pretty" class="card-link" target="_blank">ACCESS API</a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🛡️</div>
+                    <div class="card-title">Zeek IDS</div>
+                </div>
+                <div class="card-description">
+                    > Behavioral threat detection<br>
+                    > Protocol analysis (DNS, HTTP, SSL)<br>
+                    > Network forensics
+                </div>
+                <span class="card-link disabled">LOGS ONLY</span>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">⚙️</div>
+                    <div class="card-title">Logstash Pipeline</div>
+                </div>
+                <div class="card-description">
+                    > Multi-pipeline transformation<br>
+                    > Zeek TSV parsing (5 pipelines)<br>
+                    > Data enrichment & normalization
+                </div>
+                <span class="card-link disabled">PROCESSING</span>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📦</div>
+                    <div class="card-title">Dumpcap PCAP</div>
+                </div>
+                <div class="card-description">
+                    > Ring buffer capture (10 files)<br>
+                    > Automatic rotation (1GB/file)<br>
+                    > 7-day retention policy
+                </div>
+                <span class="card-link disabled">CAPTURE ACTIVE</span>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">⚠️</div>
+                    <div class="card-title">Ettercap MITM</div>
+                </div>
+                <div class="card-description">
+                    > ARP spoofing detection<br>
+                    > DNS anomaly monitoring<br>
+                    > Passive network surveillance
+                </div>
+                <span class="card-link disabled">MONITORING</span>
+            </div>
+        </div>
+
+        <footer>
+            <div class="terminal-prompt">root@glenz:~#</div>
+            <div style="margin-top: 10px;">
+                GLENZ Stack v3.0 | Zeek • Dumpcap • Ettercap • Elasticsearch • Logstash • Grafana
+            </div>
+            <div style="margin-top: 5px; font-size: 0.7em; color: #555;">
+                [ BEHAVIORAL ANALYSIS - AUTHORIZED PERSONNEL ONLY ]
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const time = now.toTimeString().split(' ')[0];
+            document.getElementById('clock').textContent = `SYSTEM TIME: ${time}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('http://localhost:9200/_cluster/health');
+                if (response.ok) {
+                    document.getElementById('es-status').textContent = '[ ONLINE ]';
+                    document.getElementById('es-status').classList.add('status-online');
+                } else {
+                    throw new Error('ES offline');
+                }
+            } catch (e) {
+                document.getElementById('es-status').textContent = '[ OFFLINE ]';
+                document.getElementById('es-status').classList.remove('status-online');
+                document.getElementById('es-status').classList.add('status-offline');
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/health');
+                if (response.ok) {
+                    document.getElementById('grafana-status').textContent = '[ ONLINE ]';
+                    document.getElementById('grafana-status').classList.add('status-online');
+                } else {
+                    throw new Error('Grafana offline');
+                }
+            } catch (e) {
+                document.getElementById('grafana-status').textContent = '[ OFFLINE ]';
+                document.getElementById('grafana-status').classList.remove('status-online');
+                document.getElementById('grafana-status').classList.add('status-offline');
+            }
+        }
+
+        checkStatus();
+        setInterval(checkStatus, 30000);
+    </script>
+</body>
+</html>

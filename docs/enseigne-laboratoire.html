@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avertissement - Laboratoire de Cybersécurité</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            max-width: 210mm;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        @media screen {
+            body {
+                width: 100%;
+                padding: 15px;
+            }
+        }
+
+        .header {
+            text-align: center;
+            border: 4px solid #ff6b35;
+            padding: 30px;
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #ff6b35;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header .subtitle {
+            font-size: 24px;
+            color: #ffd700;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .warning-icon {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .warning-icon svg {
+            width: 120px;
+            height: 120px;
+            fill: #ff6b35;
+            filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.7));
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 40px;
+            margin: 20px 0;
+        }
+
+        .content h2 {
+            font-size: 36px;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .content p {
+            font-size: 20px;
+            line-height: 1.8;
+            text-align: justify;
+            margin-bottom: 20px;
+            color: #e0e0e0;
+        }
+
+        .content .highlight {
+            background: rgba(255, 107, 53, 0.2);
+            border-left: 4px solid #ff6b35;
+            padding: 20px;
+            margin: 20px 0;
+            font-weight: bold;
+            font-size: 22px;
+            color: #fff;
+        }
+
+        .monitored-list {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #ffd700;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .monitored-list h3 {
+            color: #ffd700;
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .monitored-list ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .monitored-list li {
+            font-size: 18px;
+            margin: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .monitored-list li:before {
+            content: "▸";
+            color: #ff6b35;
+            font-weight: bold;
+            position: absolute;
+            left: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            border-top: 3px solid #ff6b35;
+            padding-top: 20px;
+            margin-top: 30px;
+        }
+
+        .footer p {
+            font-size: 18px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .footer .institution {
+            font-size: 16px;
+            color: #ccc;
+            margin-top: 10px;
+        }
+
+        /* Responsive mobile */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+                letter-spacing: 2px;
+            }
+
+            .header .subtitle {
+                font-size: 16px;
+                letter-spacing: 1px;
+            }
+
+            .warning-icon svg {
+                width: 80px;
+                height: 80px;
+            }
+
+            .warning-icon {
+                margin: 15px 0;
+            }
+
+            .content {
+                padding: 20px 15px;
+                margin: 10px 0;
+            }
+
+            .content h2 {
+                font-size: 24px;
+                margin-bottom: 15px;
+                letter-spacing: 2px;
+            }
+
+            .content p {
+                font-size: 16px;
+                line-height: 1.6;
+            }
+
+            .content .highlight {
+                font-size: 18px;
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .monitored-list {
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .monitored-list h3 {
+                font-size: 20px;
+            }
+
+            .monitored-list li {
+                font-size: 15px;
+                padding-left: 25px;
+            }
+
+            .monitored-list li:before {
+                left: 5px;
+            }
+
+            .footer p {
+                font-size: 14px;
+            }
+
+            .footer .institution {
+                font-size: 13px;
+            }
+        }
+
+        /* Responsive tablette */
+        @media screen and (min-width: 769px) and (max-width: 1024px) {
+            .header h1 {
+                font-size: 36px;
+            }
+
+            .content h2 {
+                font-size: 30px;
+            }
+
+            .content p {
+                font-size: 18px;
+            }
+        }
+
+        @media print {
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+                width: 210mm;
+                height: 297mm;
+                padding: 20mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚠️ AVERTISSEMENT ⚠️</h1>
+        <div class="subtitle">LABORATOIRE DE CYBERSÉCURITÉ</div>
+    </div>
+
+    <div class="warning-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+        </svg>
+    </div>
+
+    <div class="content">
+        <h2>🔒 SURVEILLANCE ACTIVE 🔒</h2>
+
+        <p>
+            <strong>TOUS LES ACCÈS INTERNET SONT SURVEILLÉS ET ENREGISTRÉS</strong>
+        </p>
+
+        <div class="highlight">
+            ⚠️ VOUS NE DEVEZ AVOIR AUCUNE ATTENTE EN MATIÈRE DE CONFIDENTIALITÉ
+        </div>
+
+        <p>
+            En utilisant ce réseau informatique, vous consentez explicitement à la surveillance
+            et à l'enregistrement de toutes vos activités réseau, incluant mais sans s'y limiter :
+        </p>
+
+        <div class="monitored-list">
+            <h3>📊 DONNÉES COLLECTÉES</h3>
+            <ul>
+                <li>Adresses IP sources et destinations</li>
+                <li>Requêtes DNS (sites web visités)</li>
+                <li>Protocoles utilisés (HTTP, HTTPS, FTP, SSH, etc.)</li>
+                <li>Volumes de données transférées</li>
+                <li>Horodatages précis de chaque connexion</li>
+                <li>Métadonnées des paquets réseau</li>
+                <li>Alertes de sécurité et tentatives d'intrusion</li>
+            </ul>
+        </div>
+
+        <p>
+            Les données capturées sont conservées à des fins pédagogiques, de recherche,
+            de sécurité et de conformité réglementaire. Toute activité suspecte, malveillante
+            ou contraire aux politiques de l'institution sera signalée aux autorités compétentes.
+        </p>
+
+        <div class="highlight">
+            🚫 AUCUNE ACTIVITÉ ILLÉGALE OU MALVEILLANTE NE SERA TOLÉRÉE
+        </div>
+
+        <p style="text-align: center; margin-top: 30px; font-size: 22px;">
+            <strong>SI VOUS N'ACCEPTEZ PAS CES CONDITIONS,<br/>
+            VEUILLEZ NE PAS UTILISER CE RÉSEAU.</strong>
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>PROJET IntroSSI - Management de la Sécurité des Systèmes d'Information</p>
+        <p class="institution">École Supérieure Polytechnique (ESP) - Université Cheikh Anta Diop de Dakar (UCAD)</p>
+        <p style="margin-top: 15px; font-size: 14px; color: #888;">
+            Document officiel - Révision 2026-02-14
+        </p>
+    </div>
+</body>
+</html>

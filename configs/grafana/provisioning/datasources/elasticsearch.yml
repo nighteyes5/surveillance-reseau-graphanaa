@@ -1,0 +1,41 @@
+apiVersion: 1
+
+datasources:
+  - name: Elasticsearch-All
+    uid: elasticsearch-all
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    database: "zeek-*,ettercap-*"
+    jsonData:
+      timeField: "@timestamp"
+      esVersion: "8.0.0"
+      logMessageField: "message"
+      logLevelField: "event_type"
+      interval: Daily
+      timeInterval: "10s"
+    isDefault: true
+
+  - name: Elasticsearch-HTTP
+    uid: elasticsearch-http
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    database: "zeek-http-*"
+    jsonData:
+      timeField: "@timestamp"
+      esVersion: "8.0.0"
+      interval: Daily
+      timeInterval: "10s"
+
+  - name: Elasticsearch-ARP
+    uid: elasticsearch-arp
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    database: "ettercap-*"
+    jsonData:
+      timeField: "@timestamp"
+      esVersion: "8.0.0"
+      interval: Daily
+      timeInterval: "10s"
